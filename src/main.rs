@@ -22,6 +22,8 @@ fn main() {
         Meghan, Greg, Michael, Kirsten, Mark, Lina, Peter, Claire, John, Colin,
     ];
 
+    let mut vsiblings = Vec::from_iter(siblings.clone().into_iter());
+
     // nobody should get their spouse
     let mut verboten: HashMap<Sibling, Sibling> = HashMap::new();
     verboten.insert(Meghan, Greg);
@@ -41,14 +43,12 @@ fn main() {
 
     let mut matchups: HashMap<Sibling, Sibling> = HashMap::new();
     for giving in siblings {
-        let mut index = rand::thread_rng().gen_range(0..10);
-        let mut receiving = siblings[index];
-        while taken.contains(&receiving)
-            || &receiving == verboten.get(&giving).unwrap()
-            || giving == receiving
-        {
-            index = rand::thread_rng().gen_range(0..10);
-            receiving = siblings[index];
+        let mut index = rand::thread_rng().gen_range(0..vsiblings.len());
+        let mut receiving = vsiblings.remove(index);
+        while Some(&receiving) == verboten.get(&giving) || giving == receiving {
+            vsiblings.push(receiving);
+            index = rand::thread_rng().gen_range(0..vsiblings.len());
+            receiving = vsiblings.remove(index);
         }
         matchups.insert(giving, receiving);
         taken.insert(receiving);
