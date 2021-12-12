@@ -4,21 +4,29 @@ use std::collections::HashSet;
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Hash)]
 enum Sibling {
-    Alice,
-    Bob,
-    Charlie,
-    Dan,
-    Ethyl,
-    Fred,
+    Meghan,
+    Greg,
+    Michael,
+    Kirsten,
+    Mark,
+    Lina,
+    Peter,
+    Claire,
+    John,
+    Colin,
 }
 
-const SIBLINGS: [Sibling; 6] = [
-    Sibling::Alice,
-    Sibling::Bob,
-    Sibling::Charlie,
-    Sibling::Dan,
-    Sibling::Ethyl,
-    Sibling::Fred,
+const SIBLINGS: [Sibling; 10] = [
+    Sibling::Meghan,
+    Sibling::Greg,
+    Sibling::Michael,
+    Sibling::Kirsten,
+    Sibling::Mark,
+    Sibling::Lina,
+    Sibling::Peter,
+    Sibling::Claire,
+    Sibling::John,
+    Sibling::Colin,
 ];
 
 fn main() {
@@ -32,12 +40,16 @@ fn main() {
     let mut other_result: HashSet<(Sibling, Sibling)> = HashSet::new();
 
     let mut verboten: HashMap<Sibling, Sibling> = HashMap::new();
-    verboten.insert(Alice, Bob);
-    verboten.insert(Bob, Alice);
-    verboten.insert(Charlie, Dan);
-    verboten.insert(Dan, Charlie);
-    verboten.insert(Ethyl, Fred);
-    verboten.insert(Fred, Ethyl);
+    verboten.insert(Meghan, Greg);
+    verboten.insert(Greg, Meghan);
+    verboten.insert(Michael, Kirsten);
+    verboten.insert(Kirsten, Michael);
+    verboten.insert(Mark, Lina);
+    verboten.insert(Lina, Mark);
+    verboten.insert(Peter, Claire);
+    verboten.insert(Claire, Peter);
+    verboten.insert(John, Colin);
+    verboten.insert(Colin, John);
 
     r(
         &mut final_results,
