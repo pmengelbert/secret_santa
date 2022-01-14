@@ -1,9 +1,9 @@
-#![allow(unused_variables, dead_code, unused_imports)]
+use serde::Serialize;
+use serde_json::json;
+use serde_json::Value;
 use std::collections::HashMap;
-use std::collections::HashSet;
-use std::collections::VecDeque;
 
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Hash)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Hash, Serialize)]
 enum Sibling {
     Meghan,
     Greg,
@@ -17,104 +17,83 @@ enum Sibling {
     Colin,
 }
 
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Hash)]
-enum Participant {
-    Giver(Sibling),
-    Receiver(Sibling),
-}
-
 fn main() {
-    use Participant::*;
     use Sibling::*;
 
-    let mut givers = VecDeque::from_iter(
-        [Giver(Meghan), Giver(Michael), Giver(Greg), Giver(Kirsten)].into_iter(),
-    );
-
-    let mut receivers = VecDeque::from_iter(
-        [
-            Receiver(Meghan),
-            Receiver(Michael),
-            Receiver(Greg),
-            Receiver(Kirsten),
-        ]
-        .into_iter(),
-    );
+    let givers = vec![
+        Meghan, Greg, Michael, Kirsten, Mark, Lina, Peter, Claire, John, Colin,
+    ];
+    let mut receivers = vec![
+        Meghan, Greg, Michael, Kirsten, Mark, Lina, Peter, Claire, John, Colin,
+    ];
 
     let mut verboten = HashMap::new();
-    verboten.insert(Meghan, Meghan);
-    verboten.insert(Greg, Greg);
     verboten.insert(Meghan, Greg);
     verboten.insert(Greg, Meghan);
-
-    verboten.insert(Michael, Michael);
-    verboten.insert(Kirsten, Kirsten);
     verboten.insert(Michael, Kirsten);
     verboten.insert(Kirsten, Michael);
+    verboten.insert(Mark, Lina);
+    verboten.insert(Lina, Mark);
+    verboten.insert(Peter, Claire);
+    verboten.insert(Claire, Peter);
+    verboten.insert(John, Colin);
+    verboten.insert(Colin, John);
 
-    let mut builder = vec![];
-    let mut output = vec![];
+    let mut collection = vec![];
+    backtrack(0, &verboten, &givers, &mut receivers, &mut collection);
 
-    let first = givers.pop_front().unwrap();
-    r(
-        &mut givers,
-        &mut receivers,
-        &mut builder,
-        &mut output,
-        &verboten,
-        (first, None),
-    );
+    let mut json_results = vec![];
+    for i in 0..collection.len() {
+        let mut result = vec![];
+        for j in 0..givers.len() {
+            result.push(json!({
+                "giver": givers[j],
+                "recvr": collection[i][j],
+            }));
+        }
 
-    // take each giver in turn
-    // meghan
+        json_results.push(json!({
+            "num": i + 1,
+            "result": result
+        }));
+    }
+
+    println!("{}", serde_json::Value::Array(json_results).to_string());
 }
 
-fn r(
-    givers: &mut VecDeque<Participant>,
-    receivers: &mut VecDeque<Participant>,
-    builder: &mut Vec<(Participant, Participant)>,
-    output: &mut Vec<Vec<(Participant, Participant)>>,
+fn backtrack(
+    first: usize,
     verboten: &HashMap<Sibling, Sibling>,
-    mut current: (Participant, Option<Participant>),
+    givers: &Vec<Sibling>,
+    receivers: &mut Vec<Sibling>,
+    collection: &mut Vec<Vec<Sibling>>,
 ) {
-    use Participant::*;
-
-    let participant = match current {
-        (g, None) => g,
-        (Giver(g), Some(Receiver(rcv))) => {
-            if let Some(&recv) = verboten.get(&g) {
-                if recv == rcv {
+    if first == receivers.len() {
+        for (i, &r) in receivers.iter().enumerate() {
+            if givers[i] == r {
+                return;
+            } else if let Some(&bad) = verboten.get(&givers[i]) {
+                if r == bad {
                     return;
-                } else {
-                    builder.push((Giver(g), Receiver(rcv)));
-                    if builder.len() == 2 {
-                        output.push(builder.clone());
-                        return;
-                    }
-                    if let Some(next_giver) = givers.pop_front() {
-                        r(
-                            givers,
-                            receivers,
-                            builder,
-                            output,
-                            verboten,
-                            (next_giver, None),
-                        );
-                    } else {
-                        return;
-                    }
                 }
             }
-            Receiver(rcv)
         }
-        _ => unreachable!(),
-    };
 
-    // match participant {
-    //     Giver(g) => {
-    //         let mut frozen = receivers.clone();
-    //         while let Some(r) = frozen.pop_front() {}
-    //     }
-    //     Receiver(r) => {}
-    // }
+        collection.push(receivers.clone());
+        return;
+    }
+
+    for i in first..receivers.len() {
+        match verboten.get(&givers[i]) {
+            Some(&receiver) if receiver == receivers[i] => {
+                continue;
+            }
+            None => unreachable!(),
+            _ => {
+                receivers.swap(first, i);
+                backtrack(first + 1, verboten, givers, receivers, collection);
+                receivers.swap(first, i);
+            }
+        }
+    }
 }
