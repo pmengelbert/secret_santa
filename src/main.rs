@@ -1,9 +1,6 @@
-use serde::Serialize;
-use serde_json::json;
-use serde_json::Value;
-use std::collections::HashMap;
+use rand::{thread_rng, Rng};
 
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Hash, Serialize)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
 #[repr(u8)]
 enum Sibling {
     Meghan = 0,
@@ -18,87 +15,35 @@ enum Sibling {
     Colin = 9,
 }
 
-const BUTT: [u8; 4_001_920] = [0_u8; 4_001_920];
-
 fn main() {
     use Sibling::*;
 
     let givers = vec![
-        Meghan as u8,
-        Greg as u8,
-        Michael as u8,
-        Kirsten as u8,
-        Mark as u8,
-        Lina as u8,
-        Peter as u8,
-        Claire as u8,
-        John as u8,
-        Colin as u8,
-    ];
-    let mut receivers = vec![
-        Meghan as u8,
-        Greg as u8,
-        Michael as u8,
-        Kirsten as u8,
-        Mark as u8,
-        Lina as u8,
-        Peter as u8,
-        Claire as u8,
-        John as u8,
-        Colin as u8,
+        Meghan, Greg, Michael, Kirsten, Mark, Lina, Peter, Claire, John, Colin,
     ];
 
-    let mut verboten = HashMap::new();
-    verboten.insert(Meghan as u8, Greg as u8);
-    verboten.insert(Greg as u8, Meghan as u8);
-    verboten.insert(Michael as u8, Kirsten as u8);
-    verboten.insert(Kirsten as u8, Michael as u8);
-    verboten.insert(Mark as u8, Lina as u8);
-    verboten.insert(Lina as u8, Mark as u8);
-    verboten.insert(Peter as u8, Claire as u8);
-    verboten.insert(Claire as u8, Peter as u8);
-    verboten.insert(John as u8, Colin as u8);
-    verboten.insert(Colin as u8, John as u8);
+    let results = include_bytes!("../out.bin");
 
-    let mut collection = vec![];
-    backtrack(0, &verboten, &givers, &mut receivers, &mut collection);
+    let random_index = thread_rng().gen_range(0..400_192) * 10;
 
-    std::fs::write("/tmp/foo.txt", &collection);
+    for (i, &b) in results[random_index..random_index + 10].iter().enumerate() {
+        println!("{:?} gives to {:?}", givers[i], to_sibling(b));
+    }
 }
 
-fn backtrack(
-    first: usize,
-    verboten: &HashMap<u8, u8>,
-    givers: &Vec<u8>,
-    receivers: &mut Vec<u8>,
-    collection: &mut Vec<u8>,
-) {
-    if first == receivers.len() {
-        for (i, &r) in receivers.iter().enumerate() {
-            if givers[i] == r {
-                return;
-            } else if let Some(&bad) = verboten.get(&givers[i]) {
-                if r == bad {
-                    return;
-                }
-            }
-        }
-
-        collection.extend_from_slice(&receivers);
-        return;
-    }
-
-    for i in first..receivers.len() {
-        match verboten.get(&givers[i]) {
-            Some(&receiver) if receiver == receivers[i] => {
-                continue;
-            }
-            None => unreachable!(),
-            _ => {
-                receivers.swap(first, i);
-                backtrack(first + 1, verboten, givers, receivers, collection);
-                receivers.swap(first, i);
-            }
-        }
+fn to_sibling(n: u8) -> Sibling {
+    use Sibling::*;
+    match n {
+        0 => Meghan,
+        1 => Greg,
+        2 => Michael,
+        3 => Kirsten,
+        4 => Mark,
+        5 => Lina,
+        6 => Peter,
+        7 => Claire,
+        8 => John,
+        9 => Colin,
+        _ => unreachable!(),
     }
 }
