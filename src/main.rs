@@ -4,69 +4,74 @@ use serde_json::Value;
 use std::collections::HashMap;
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Hash, Serialize)]
+#[repr(u8)]
 enum Sibling {
-    Meghan,
-    Greg,
-    Michael,
-    Kirsten,
-    Mark,
-    Lina,
-    Peter,
-    Claire,
-    John,
-    Colin,
+    Meghan = 0,
+    Greg = 1,
+    Michael = 2,
+    Kirsten = 3,
+    Mark = 4,
+    Lina = 5,
+    Peter = 6,
+    Claire = 7,
+    John = 8,
+    Colin = 9,
 }
+
+const BUTT: [u8; 4_001_920] = [0_u8; 4_001_920];
 
 fn main() {
     use Sibling::*;
 
     let givers = vec![
-        Meghan, Greg, Michael, Kirsten, Mark, Lina, Peter, Claire, John, Colin,
+        Meghan as u8,
+        Greg as u8,
+        Michael as u8,
+        Kirsten as u8,
+        Mark as u8,
+        Lina as u8,
+        Peter as u8,
+        Claire as u8,
+        John as u8,
+        Colin as u8,
     ];
     let mut receivers = vec![
-        Meghan, Greg, Michael, Kirsten, Mark, Lina, Peter, Claire, John, Colin,
+        Meghan as u8,
+        Greg as u8,
+        Michael as u8,
+        Kirsten as u8,
+        Mark as u8,
+        Lina as u8,
+        Peter as u8,
+        Claire as u8,
+        John as u8,
+        Colin as u8,
     ];
 
     let mut verboten = HashMap::new();
-    verboten.insert(Meghan, Greg);
-    verboten.insert(Greg, Meghan);
-    verboten.insert(Michael, Kirsten);
-    verboten.insert(Kirsten, Michael);
-    verboten.insert(Mark, Lina);
-    verboten.insert(Lina, Mark);
-    verboten.insert(Peter, Claire);
-    verboten.insert(Claire, Peter);
-    verboten.insert(John, Colin);
-    verboten.insert(Colin, John);
+    verboten.insert(Meghan as u8, Greg as u8);
+    verboten.insert(Greg as u8, Meghan as u8);
+    verboten.insert(Michael as u8, Kirsten as u8);
+    verboten.insert(Kirsten as u8, Michael as u8);
+    verboten.insert(Mark as u8, Lina as u8);
+    verboten.insert(Lina as u8, Mark as u8);
+    verboten.insert(Peter as u8, Claire as u8);
+    verboten.insert(Claire as u8, Peter as u8);
+    verboten.insert(John as u8, Colin as u8);
+    verboten.insert(Colin as u8, John as u8);
 
     let mut collection = vec![];
     backtrack(0, &verboten, &givers, &mut receivers, &mut collection);
 
-    let mut json_results = vec![];
-    for i in 0..collection.len() {
-        let mut result = vec![];
-        for j in 0..givers.len() {
-            result.push(json!({
-                "giver": givers[j],
-                "recvr": collection[i][j],
-            }));
-        }
-
-        json_results.push(json!({
-            "num": i + 1,
-            "result": result
-        }));
-    }
-
-    println!("{}", serde_json::Value::Array(json_results).to_string());
+    std::fs::write("/tmp/foo.txt", &collection);
 }
 
 fn backtrack(
     first: usize,
-    verboten: &HashMap<Sibling, Sibling>,
-    givers: &Vec<Sibling>,
-    receivers: &mut Vec<Sibling>,
-    collection: &mut Vec<Vec<Sibling>>,
+    verboten: &HashMap<u8, u8>,
+    givers: &Vec<u8>,
+    receivers: &mut Vec<u8>,
+    collection: &mut Vec<u8>,
 ) {
     if first == receivers.len() {
         for (i, &r) in receivers.iter().enumerate() {
@@ -79,7 +84,7 @@ fn backtrack(
             }
         }
 
-        collection.push(receivers.clone());
+        collection.extend_from_slice(&receivers);
         return;
     }
 
